@@ -107,7 +107,7 @@ namespace Account_Lookup
         {
             try
             {
-                string jsonContent = File.ReadAllText("wmn-data.json");
+                string jsonContent = File.ReadAllText("wmn-data.json", Encoding.UTF8);
 
                 var data = JObject.Parse(jsonContent);
                 var sites = data["sites"];
