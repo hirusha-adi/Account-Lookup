@@ -66,5 +66,10 @@ namespace Account_Lookup
         {
             Application.Exit();
         }
+
+        private void button_search_Click(object sender, EventArgs e)
+        {
+            string username = field_username.Text;
+        }
     }
 }

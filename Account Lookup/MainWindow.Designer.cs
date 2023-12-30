@@ -183,6 +183,7 @@
             button_search.TabIndex = 2;
             button_search.Text = "Search";
             button_search.UseVisualStyleBackColor = true;
+            button_search.Click += button_search_Click;
             // 
             // field_username
             // 
