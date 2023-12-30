@@ -11,6 +11,7 @@ using System.Windows.Forms;
 using System.Linq;
 using System.Net.Http;
 using System.Diagnostics;
+using Newtonsoft.Json.Linq;
 
 namespace Account_Lookup
 {
@@ -161,7 +162,7 @@ namespace Account_Lookup
 
                 var responseContent = await response.Content.ReadAsStringAsync();
 
-                if (response.StatusCode == site.Value<int>("e_code") && responseContent.Contains(site.Value<string>("e_string")))
+                if ((int)response.StatusCode == site.Value<int>("e_code") && responseContent.Contains(site.Value<string>("e_string")))
                 {
                     var accountInfo = new FoundAccount
                     {
