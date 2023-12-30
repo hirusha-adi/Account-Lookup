@@ -61,6 +61,11 @@ class Ui_MainWindow(object):
         self.table_widget.setColumnCount(3)
         self.table_widget.setHorizontalHeaderLabels(["Platform Name", "URL", "Status"])
 
+        # Set column widths
+        self.table_widget.setColumnWidth(0, 100)
+        self.table_widget.setColumnWidth(1, 198)
+        self.table_widget.setColumnWidth(2, 60)
+
         # Log group box setup
         self.group_log = QGroupBox(self.centralwidget)
         self.group_log.setGeometry(10, 370, 361, 111)
@@ -184,7 +189,8 @@ def check_username_on_site(site, username, session):
             return False
 
     except requests.exceptions.RequestException as req_err:
-        print(f"Error occurred for {site['name']} - {req_err}")
+        error_message = f"Error occurred for {site['name']} - {req_err}"
+        ui.textBrowser.append(error_message)
 
     return False
 
