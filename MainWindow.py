@@ -97,7 +97,7 @@ class Ui_MainWindow(object):
         self.label_3.setText(_translate("MainWindow", "Exit"))
 
         self.label_4 = QtWidgets.QLabel(parent=self.centralwidget)
-        self.label_4.setGeometry(QtCore.QRect(260, 430, 111, 20))
+        self.label_4.setGeometry(QtCore.QRect(250, 430, 121, 20))
         self.label_4.setObjectName("label_4")
         self.label_4.setText(_translate("MainWindow", "Made by @hirushaadi"))
 
