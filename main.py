@@ -1,6 +1,7 @@
 from PyQt6.QtWidgets import QAbstractItemView, QApplication, QMainWindow, QWidget, QLabel, QGroupBox, QTextEdit, QPushButton, QTableWidget, QMenuBar, QMenu, QTextBrowser, QVBoxLayout
 from PyQt6.QtGui import QAction
 from PyQt6.QtWidgets import QStatusBar
+from PyQt6.QtWidgets import QFileDialog
 
 from PyQt6 import QtCore, QtGui, QtWidgets
 import sys
@@ -110,6 +111,7 @@ class Ui_MainWindow(object):
         # Action setup
         self.actionSave = QAction(MainWindow)
         self.actionSave.setText("Save")
+        self.actionSave.triggered.connect(self.save_json)
         self.actionSearch = QAction(MainWindow)
         self.actionSearch.setText("Search")
         self.actionClear = QAction(MainWindow)
@@ -158,6 +160,20 @@ class Ui_MainWindow(object):
     def handle_item_click(self, item):
         if item.column() == 1:
             webbrowser.open(f"{item.text()}")
+    
+    def save_json(self):
+        options = QFileDialog.options()
+        options |= QFileDialog.Option.DontUseNativeDialog
+        file_dialog = QFileDialog()
+        file_dialog.setOptions(options)
+        file_dialog.setDefaultSuffix('json')
+        file_path, _ = file_dialog.getSaveFileName(None, "Save JSON File", "", "JSON Files (*.json);;All Files (*)")
+
+        if file_path:
+            with open(file_path, 'w', encoding='utf-8') as file:
+                json.dump(found_accounts, file, ensure_ascii=False, indent=2)
+            ui.textBrowser.append(f"Saved to {file_path}")
+            
             
 found_accounts = []
 
