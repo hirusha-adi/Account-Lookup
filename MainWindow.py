@@ -25,6 +25,7 @@ class Ui_MainWindow(object):
         MainWindow.setObjectName("MainWindow")
         MainWindow.resize(381, 491)
         MainWindow.setWindowTitle(_translate("MainWindow", "Account Lookup"))
+        MainWindow.setFixedSize(381, 491) 
 
         # Central Widget setup
         self.centralwidget = QtWidgets.QWidget(parent=MainWindow)
@@ -47,24 +48,24 @@ class Ui_MainWindow(object):
 
         # Username Label setup
         self.label_username = QtWidgets.QLabel(parent=self.group_search)
-        self.label_username.setGeometry(QtCore.QRect(20, 30, 61, 31))
+        self.label_username.setGeometry(QtCore.QRect(10, 30, 61, 31))
         self.label_username.setObjectName("label_username")
         self.label_username.setText(_translate("MainWindow", "Username:"))
 
         # Username TextEdit setup
         self.txt_username = QtWidgets.QTextEdit(parent=self.group_search)
-        self.txt_username.setGeometry(QtCore.QRect(80, 30, 131, 31))
+        self.txt_username.setGeometry(QtCore.QRect(70, 30, 161, 31))
         self.txt_username.setObjectName("txt_username")
 
         # Search Button setup
         self.btn_search = QtWidgets.QPushButton(parent=self.group_search)
-        self.btn_search.setGeometry(QtCore.QRect(220, 30, 75, 31))
+        self.btn_search.setGeometry(QtCore.QRect(240, 30, 75, 31))
         self.btn_search.setObjectName("btn_search")
         self.btn_search.setText(_translate("MainWindow", "Search"))
 
         # Clear Button setup
         self.btn_clear = QtWidgets.QPushButton(parent=self.group_search)
-        self.btn_clear.setGeometry(QtCore.QRect(300, 30, 31, 31))
+        self.btn_clear.setGeometry(QtCore.QRect(320, 30, 31, 31))
         self.btn_clear.setObjectName("btn_clear")
         self.btn_clear.setText(_translate("MainWindow", "X"))
 
