@@ -149,6 +149,7 @@
             dataGridView1.AllowUserToAddRows = false;
             dataGridView1.AllowUserToDeleteRows = false;
             dataGridView1.AllowUserToOrderColumns = true;
+            dataGridView1.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
             dataGridView1.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             dataGridView1.Columns.AddRange(new DataGridViewColumn[] { column_id, column_name, column_status });
             dataGridView1.Location = new Point(12, 157);
@@ -247,13 +248,15 @@
             // 
             // column_id
             // 
+            column_id.FillWeight = 46.8066444F;
             column_id.HeaderText = "ID";
+            column_id.MinimumWidth = 23;
             column_id.Name = "column_id";
             column_id.ReadOnly = true;
-            column_id.Width = 10;
             // 
             // column_name
             // 
+            column_name.FillWeight = 177.051208F;
             column_name.HeaderText = "Platform Name";
             column_name.MinimumWidth = 10;
             column_name.Name = "column_name";
@@ -261,9 +264,11 @@
             // 
             // column_status
             // 
+            column_status.FillWeight = 76.14212F;
             column_status.HeaderText = "Status";
             column_status.Name = "column_status";
             column_status.ReadOnly = true;
+            column_status.Resizable = DataGridViewTriState.True;
             // 
             // MainWindow
             // 
