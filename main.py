@@ -1,4 +1,4 @@
-from PyQt6.QtWidgets import QApplication, QMainWindow, QWidget, QLabel, QGroupBox, QTextEdit, QPushButton, QTableWidget, QMenuBar, QMenu, QTextBrowser, QVBoxLayout
+from PyQt6.QtWidgets import QAbstractItemView, QApplication, QMainWindow, QWidget, QLabel, QGroupBox, QTextEdit, QPushButton, QTableWidget, QMenuBar, QMenu, QTextBrowser, QVBoxLayout
 from PyQt6.QtGui import QAction
 from PyQt6.QtWidgets import QStatusBar
 
@@ -7,9 +7,8 @@ import sys
 from PyQt6.QtWidgets import QProgressDialog
 from PyQt6.QtCore import Qt
 from PyQt6.QtWidgets import QMessageBox
-
 import requests
-import json
+import json, webbrowser
 from concurrent.futures import ThreadPoolExecutor
 from urllib.parse import urlparse
 
@@ -63,9 +62,16 @@ class Ui_MainWindow(object):
 
         # Set column widths
         self.table_widget.setColumnWidth(0, 100)
-        self.table_widget.setColumnWidth(1, 198)
+        self.table_widget.setColumnWidth(1, 170)
         self.table_widget.setColumnWidth(2, 60)
+        
+        # Set read-only mode for the entire table
+        self.table_widget.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
 
+        # Connect itemClicked signal to custom slot
+        self.table_widget.itemDoubleClicked.connect(self.handle_item_click)
+
+        
         # Log group box setup
         self.group_log = QGroupBox(self.centralwidget)
         self.group_log.setGeometry(10, 370, 361, 111)
@@ -74,7 +80,7 @@ class Ui_MainWindow(object):
         # Text browser setup
         self.textBrowser = QTextBrowser(self.group_log)
         self.textBrowser.setGeometry(10, 30, 341, 71)
-
+        
         # Set central widget
         MainWindow.setCentralWidget(self.centralwidget)
 
@@ -102,6 +108,8 @@ class Ui_MainWindow(object):
         MainWindow.setStatusBar(self.statusbar)
 
         # Action setup
+        self.actionSave = QAction(MainWindow)
+        self.actionSave.setText("Save")
         self.actionSearch = QAction(MainWindow)
         self.actionSearch.setText("Search")
         self.actionClear = QAction(MainWindow)
@@ -120,6 +128,7 @@ class Ui_MainWindow(object):
         self.actionContribute.setText("Contribute")
 
         # Add actions to menus
+        self.menuFile.addAction(self.actionSave)
         self.menuFile.addAction(self.actionSearch)
         self.menuFile.addAction(self.actionClear)
         self.menuFile.addAction(self.actionExit)
@@ -144,8 +153,12 @@ class Ui_MainWindow(object):
             # populate
             self.table_widget.setItem(row_position, 0, QtWidgets.QTableWidgetItem(str(account_info["name"])))
             self.table_widget.setItem(row_position, 1, QtWidgets.QTableWidgetItem(account_info["url_user"]))
-            self.table_widget.setItem(row_position, 2, QtWidgets.QTableWidgetItem(account_info["http_status"]))
+            self.table_widget.setItem(row_position, 2, QtWidgets.QTableWidgetItem(str(account_info["http_status"])))
 
+    def handle_item_click(self, item):
+        if item.column() == 1:
+            webbrowser.open(f"{item.text()}")
+            
 found_accounts = []
 
 def extract_main_url(input_url):
@@ -188,9 +201,8 @@ def check_username_on_site(site, username, session):
         elif response.status_code == site["m_code"] and site["m_string"] in response.text:
             return False
 
-    except requests.exceptions.RequestException as req_err:
-        error_message = f"Error occurred for {site['name']} - {req_err}"
-        ui.textBrowser.append(error_message)
+    except requests.exceptions.RequestException:
+        ui.textBrowser.append(f"Not in {site['name']}.")
 
     return False
 
