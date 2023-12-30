@@ -8,6 +8,12 @@
 from PyQt6 import QtCore, QtGui, QtWidgets
 import sys
 
+import requests
+import json
+from concurrent.futures import ThreadPoolExecutor
+from urllib.parse import urlparse
+
+
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         
@@ -172,6 +178,91 @@ class Ui_MainWindow(object):
         self.menubar.addAction(self.menuGuide.menuAction())
         self.menubar.addAction(self.menuAbout.menuAction())
 
-        # Translate UI elements
+        # something... idk
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
+    def update_table(self, found_accounts):
+        self.table_widget.setRowCount(0)  # clear table
+
+        for account_info in found_accounts:
+            row_position = self.table_widget.rowCount()
+            self.table_widget.insertRow(row_position)
+
+            # populate
+            self.table_widget.setItem(row_position, 0, QtWidgets.QTableWidgetItem(str(account_info["id"])))
+            self.table_widget.setItem(row_position, 1, QtWidgets.QTableWidgetItem(account_info["name"]))
+            self.table_widget.setItem(row_position, 2, QtWidgets.QTableWidgetItem(account_info["exists"]))
+
+
+found_accounts = []
+
+def extract_main_url(input_url):
+    try:
+        parsed_url = urlparse(input_url)
+        main_url = f"{parsed_url.scheme}://{parsed_url.netloc}/"
+        return main_url
+    except:
+        return input_url 
+    
+def check_username_on_site(site, username, session):
+    uri = site.get("uri_check")
+    method = site.get("method", "GET")
+    payload = site.get("post_body", {})
+    headers = site.get("headers", {})
+
+    try:
+        if method == "GET":
+            final_url = uri.format(account=username)
+            response = session.get(final_url, headers=headers, timeout=10)
+        elif method == "POST":
+            final_url = uri
+            response = session.post(final_url, data=payload, headers=headers, timeout=10)
+
+        response.raise_for_status()
+
+        if response.status_code == site["e_code"] and site["e_string"] in response.text:
+            account_info = {
+                "id": len(found_accounts) + 1,
+                "username": username,
+                "name": site.get("name"),
+                "url_main": extract_main_url(final_url),
+                "url_user": final_url,
+                "exists": "Claimed",
+                "http_status": response.status_code,
+                "response_time_s": f"{response.elapsed.total_seconds():.3f}",
+            }
+            found_accounts.append(account_info)
+            return True
+        elif response.status_code == site["m_code"] and site["m_string"] in response.text:
+            return False
+
+    except requests.exceptions.RequestException as req_err:
+        print(f"Error occurred for {site['name']} - {req_err}")
+
+    return False
+
+def check_username(username):
+    global found_accounts
+    found_accounts = []
+
+    with open('wmn-data.json', 'r', encoding='utf-8') as file:
+        data = json.load(file)
+
+    with ThreadPoolExecutor() as executor, requests.Session() as session:
+        futures = [executor.submit(check_username_on_site, site, username, session) for site in data["sites"]]
+        results = [future.result() for future in futures]
+
+    if any(results):
+        ui.update_table(found_accounts)
+    else:
+        print(f"Username {username} not found on any site.")
+
+app = QtWidgets.QApplication(sys.argv)
+MainWindow = QtWidgets.QMainWindow()
+ui = Ui_MainWindow()
+ui.setupUi(MainWindow)
+
+ui.btn_search.clicked.connect(lambda: check_username(ui.txt_username.toPlainText()))
+
+MainWindow.show()
+sys.exit(app.exec())
