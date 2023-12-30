@@ -4,7 +4,7 @@ from PyQt6.QtWidgets import QStatusBar
 from PyQt6.QtWidgets import QFileDialog
 
 from PyQt6 import QtCore, QtGui, QtWidgets
-import sys
+import sys, threading
 from PyQt6.QtWidgets import QProgressDialog
 from PyQt6.QtCore import Qt
 from PyQt6.QtWidgets import QMessageBox
@@ -54,6 +54,7 @@ class Ui_MainWindow(object):
         self.btn_clear = QPushButton(self.group_search)
         self.btn_clear.setGeometry(320, 30, 31, 31)
         self.btn_clear.setText("X")
+        self.btn_clear.clicked.connect(self.clear_logs_and_table)
 
         # Table widget setup
         self.table_widget = QTableWidget(self.centralwidget)
@@ -97,10 +98,6 @@ class Ui_MainWindow(object):
         self.menuGuide = QMenu(self.menubar)
         self.menuGuide.setTitle("Help")
 
-        # About menu setup
-        self.menuAbout = QMenu(self.menubar)
-        self.menuAbout.setTitle("About")
-
         # Set menu bar
         MainWindow.setMenuBar(self.menubar)
 
@@ -112,22 +109,42 @@ class Ui_MainWindow(object):
         self.actionSave = QAction(MainWindow)
         self.actionSave.setText("Save")
         self.actionSave.triggered.connect(self.save_json)
+        
         self.actionSearch = QAction(MainWindow)
         self.actionSearch.setText("Search")
+        self.actionSearch.triggered.connect(lambda: check_username(ui.txt_username.toPlainText()))
+        
         self.actionClear = QAction(MainWindow)
         self.actionClear.setText("Clear")
+        self.actionSearch.triggered.connect(self.clear_logs_and_table)
+        
         self.actionExit = QAction(MainWindow)
         self.actionExit.setText("Exit")
+        self.actionSearch.triggered.connect(sys.exit)
+        
         self.actionGuide = QAction(MainWindow)
         self.actionGuide.setText("Guide")
+        self.actionGuide.triggered.connect(self.open_browser("https://github.com/hirusha-adi/Account-Lookup/blob/main/guide.md"))
+        
         self.actionHow_it_works = QAction(MainWindow)
         self.actionHow_it_works.setText("How it works?")
+        self.actionGuide.triggered.connect(self.open_browser("https://github.com/hirusha-adi/Account-Lookup/blob/main/how-it-works.md"))
+        
         self.actionLicense = QAction(MainWindow)
         self.actionLicense.setText("License")
+        self.actionGuide.triggered.connect(self.open_browser("https://github.com/hirusha-adi/Account-Lookup/blob/main/LICENSE"))
+        
         self.actionCredits = QAction(MainWindow)
         self.actionCredits.setText("Credits")
+        self.actionGuide.triggered.connect(self.open_browser("https://github.com/hirusha-adi/Account-Lookup/blob/main/credits.md"))
+        
         self.actionContribute = QAction(MainWindow)
         self.actionContribute.setText("Contribute")
+        self.actionGuide.triggered.connect(self.open_browser("https://github.com/hirusha-adi/Account-Lookup/"))
+        
+        self.actionAbout = QAction(MainWindow)
+        self.actionAbout.setText("About")
+        self.actionAbout.triggered.connect(self.open_about_me)
 
         # Add actions to menus
         self.menuFile.addAction(self.actionSearch)
@@ -139,11 +156,32 @@ class Ui_MainWindow(object):
         self.menuGuide.addAction(self.actionLicense)
         self.menuGuide.addAction(self.actionCredits)
         self.menuGuide.addAction(self.actionContribute)
+        self.menuGuide.addAction(self.actionAbout)
 
         # Add menus to menu bar
         self.menubar.addAction(self.menuFile.menuAction())
         self.menubar.addAction(self.menuGuide.menuAction())
-        self.menubar.addAction(self.menuAbout.menuAction())
+    
+    def open_browser(self, url):
+        webbrowser.open(url)
+    
+    def open_about_me(self):
+        # Create an information message box
+        about_box = QMessageBox()
+        about_box.setIcon(QMessageBox.Icon.Information)
+        about_box.setWindowTitle("About")
+        about_box.setText("Built by @hirushaadi")
+
+        # Add "Visit Website" and "Close" buttons
+        visit_website_button = about_box.addButton("Visit Website", QMessageBox.ButtonRole.AcceptRole)
+        close_button = about_box.addButton("Close", QMessageBox.ButtonRole.RejectRole)
+
+        # Connect the buttons to their respective actions
+        visit_website_button.clicked.connect(self.open_browser("https://hirusha.xyz"))
+        close_button.clicked.connect(about_box.reject)
+
+        # Show the message box
+        about_box.exec()
         
     def update_table(self, found_accounts):
         self.table_widget.setRowCount(0)  # clear table
@@ -170,7 +208,13 @@ class Ui_MainWindow(object):
             with open(file_path, 'w', encoding='utf-8') as file:
                 json.dump(found_accounts, file, ensure_ascii=False, indent=2)
             ui.textBrowser.append(f"Saved to {file_path}")
-            
+    
+    def clear_logs_and_table(self):
+        global found_accounts
+        found_accounts = []
+        ui.txt_username.clear()
+        ui.textBrowser.clear()
+        ui.table_widget.setRowCount(0)
             
 found_accounts = []
 
