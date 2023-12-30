@@ -162,10 +162,7 @@ class Ui_MainWindow(object):
             webbrowser.open(f"{item.text()}")
     
     def save_json(self):
-        options = QFileDialog.options()
-        options |= QFileDialog.Option.DontUseNativeDialog
         file_dialog = QFileDialog()
-        file_dialog.setOptions(options)
         file_dialog.setDefaultSuffix('json')
         file_path, _ = file_dialog.getSaveFileName(None, "Save JSON File", "", "JSON Files (*.json);;All Files (*)")
 
