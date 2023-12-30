@@ -162,7 +162,12 @@ namespace Account_Lookup
 
                 var responseContent = await response.Content.ReadAsStringAsync();
 
-                if ((int)response.StatusCode == site.Value<int>("e_code") && responseContent.Contains(site.Value<string>("e_string")))
+                var eCodeArray = site["e_code"]?.ToObject<string[]>();
+                var eCodeValue = eCodeArray != null && eCodeArray.Length > 0 ? eCodeArray[0] : "200"; // You can choose a default value
+
+                if (int.TryParse(new string(eCodeValue.Where(char.IsDigit).ToArray()), out int expectedCode) &&
+                    response.StatusCode == (HttpStatusCode)expectedCode &&
+                    responseContent.Contains(site.Value<string>("e_string")))
                 {
                     var accountInfo = new FoundAccount
                     {
