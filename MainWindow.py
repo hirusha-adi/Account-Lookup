@@ -7,6 +7,8 @@
 
 from PyQt6 import QtCore, QtGui, QtWidgets
 import sys
+from PyQt6.QtWidgets import QProgressDialog
+from PyQt6.QtCore import Qt
 
 import requests
 import json
@@ -248,15 +250,32 @@ def check_username(username):
     with open('wmn-data.json', 'r', encoding='utf-8') as file:
         data = json.load(file)
 
+    total_sites = len(data["sites"])
+    progress_dialog = QProgressDialog(f"Searching for {username}...", "Cancel", 0, total_sites)
+    progress_dialog.setWindowModality(Qt.WindowModality.WindowModal)
+    progress_dialog.setWindowTitle("Searching")
+
+    def update_progress(i):
+        progress_dialog.setValue(i)
+        app.processEvents()
+
     with ThreadPoolExecutor() as executor, requests.Session() as session:
         futures = [executor.submit(check_username_on_site, site, username, session) for site in data["sites"]]
-        results = [future.result() for future in futures]
+        for i, future in enumerate(futures):
+            if progress_dialog.wasCanceled():
+                break
+            result = future.result()
+            update_progress(i + 1)
 
-    if any(results):
-        ui.update_table(found_accounts)
-    else:
+            if result:
+                ui.update_table(found_accounts)
+
+    progress_dialog.setValue(total_sites)
+    progress_dialog.close()
+
+    if not any(found_accounts):
         print(f"Username {username} not found on any site.")
-
+        
 app = QtWidgets.QApplication(sys.argv)
 MainWindow = QtWidgets.QMainWindow()
 ui = Ui_MainWindow()
