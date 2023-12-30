@@ -71,5 +71,10 @@ namespace Account_Lookup
         {
             string username = field_username.Text;
         }
+
+        private void searchAndAdd(string username) { 
+        
+        }
+
     }
 }

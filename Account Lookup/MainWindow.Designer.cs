@@ -50,6 +50,9 @@
             label_clear = new Label();
             label4 = new Label();
             label5 = new Label();
+            column_id = new DataGridViewTextBoxColumn();
+            column_name = new DataGridViewTextBoxColumn();
+            column_status = new DataGridViewTextBoxColumn();
             menuStrip1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)dataGridView1).BeginInit();
             groupBox1.SuspendLayout();
@@ -147,6 +150,7 @@
             dataGridView1.AllowUserToDeleteRows = false;
             dataGridView1.AllowUserToOrderColumns = true;
             dataGridView1.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            dataGridView1.Columns.AddRange(new DataGridViewColumn[] { column_id, column_name, column_status });
             dataGridView1.Location = new Point(12, 157);
             dataGridView1.Name = "dataGridView1";
             dataGridView1.ReadOnly = true;
@@ -241,6 +245,26 @@
             label5.TabIndex = 6;
             label5.Text = "Account Lookup";
             // 
+            // column_id
+            // 
+            column_id.HeaderText = "ID";
+            column_id.Name = "column_id";
+            column_id.ReadOnly = true;
+            column_id.Width = 10;
+            // 
+            // column_name
+            // 
+            column_name.HeaderText = "Platform Name";
+            column_name.MinimumWidth = 10;
+            column_name.Name = "column_name";
+            column_name.ReadOnly = true;
+            // 
+            // column_status
+            // 
+            column_status.HeaderText = "Status";
+            column_status.Name = "column_status";
+            column_status.ReadOnly = true;
+            // 
             // MainWindow
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
@@ -289,5 +313,8 @@
         private Label label_clear;
         private Label label4;
         private Label label5;
+        private DataGridViewTextBoxColumn column_id;
+        private DataGridViewTextBoxColumn column_name;
+        private DataGridViewTextBoxColumn column_status;
     }
 }
