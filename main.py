@@ -128,9 +128,9 @@ class Ui_MainWindow(object):
         self.actionContribute.setText("Contribute")
 
         # Add actions to menus
-        self.menuFile.addAction(self.actionSave)
         self.menuFile.addAction(self.actionSearch)
         self.menuFile.addAction(self.actionClear)
+        self.menuFile.addAction(self.actionSave)
         self.menuFile.addAction(self.actionExit)
         self.menuGuide.addAction(self.actionGuide)
         self.menuGuide.addAction(self.actionHow_it_works)
