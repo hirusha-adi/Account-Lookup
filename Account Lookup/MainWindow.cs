@@ -18,7 +18,8 @@ namespace Account_Lookup
     public partial class MainWindow : Form
     {
 
-        private readonly List<FoundAccount> foundAccounts = new List<FoundAccount>();
+        private List<Dictionary<string, string>> foundAccounts = new List<Dictionary<string, string>>();
+
         public MainWindow()
         {
             InitializeComponent();
@@ -82,130 +83,101 @@ namespace Account_Lookup
 
         private async void searchAndAdd(string username)
         {
-            dataGridView1.Rows.Clear();
             foundAccounts.Clear();
+            dataGridView1.Rows.Clear();
+
+            string jsonData = File.ReadAllText("wmn-data.json");
+            dynamic data = JsonConvert.DeserializeObject(jsonData);
 
             using (HttpClient client = new HttpClient())
             {
-                await Task.WhenAll(getResults(client, username));
+                foreach (var site in data.sites)
+                {
+                    bool result = await CheckUsernameOnSite(client, site, username);
+                    if (result)
+                    {
+                        AddToDataGridView(site);
+                    }
+                }
             }
 
             if (foundAccounts.Count == 0)
             {
                 MessageBox.Show($"Username {username} not found on any site.");
             }
-            else
-            {
-                foreach (var accountInfo in foundAccounts)
-                {
-                    dataGridView1.Rows.Add(accountInfo.Id, accountInfo.Name, accountInfo.Exists);
-                }
-            }
         }
 
-        private async Task getResults(HttpClient client, string username)
+        private async Task<bool> CheckUsernameOnSite(HttpClient client, dynamic site, string username)
         {
+            string uri = site.uri_check.ToString().Replace("{account}", username);
             try
             {
-                string jsonContent = File.ReadAllText("wmn-data.json", Encoding.UTF8);
-
-                var data = JObject.Parse(jsonContent);
-                var sites = data["sites"];
-
-                var tasks = new List<Task>();
-
-                foreach (var site in sites)
-                {
-                    tasks.Add(checkUsernameOnSite(client, site, username));
-                }
-
-                await Task.WhenAll(tasks);
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"Error occurred - {ex.Message}");
-            }
-        }
-
-        private async Task checkUsernameOnSite(HttpClient client, JToken site, string username)
-        {
-            var uri = site.Value<string>("uri_check");
-            var method = site.Value<string>("method") ?? "GET";
-            var payload = site.Value<JObject>("post_body");
-            var headers = site.Value<JObject>("headers");
-
-            try
-            {
-                Stopwatch stopwatch = new Stopwatch();
-                stopwatch.Start();
-
                 HttpResponseMessage response;
 
-                if (method == "GET")
+                if (site.method == "POST")
                 {
-                    var finalUrl = string.Format(uri, username);
-                    response = await client.GetAsync(finalUrl);
-                }
-                else if (method == "POST")
-                {
-                    var finalUrl = uri;
-                    response = await client.PostAsync(finalUrl, new StringContent(payload.ToString()));
+                    var content = new StringContent(site.post_body.ToString(), System.Text.Encoding.UTF8, "application/json");
+                    response = await client.PostAsync(uri, content);
                 }
                 else
                 {
-                    throw new NotSupportedException("Unsupported HTTP method.");
+                    response = await client.GetAsync(uri);
                 }
-
-                stopwatch.Stop();
 
                 response.EnsureSuccessStatusCode();
 
-                var responseContent = await response.Content.ReadAsStringAsync();
+                HttpStatusCode statusCode = response.StatusCode;
+                int expectedStatusCode = Convert.ToInt32(site.e_code);
 
-                var eCodeArray = site["e_code"]?.ToObject<string[]>();
-                var eCodeValue = eCodeArray != null && eCodeArray.Length > 0 ? eCodeArray[0] : "200"; // You can choose a default value
-
-                if (int.TryParse(new string(eCodeValue.Where(char.IsDigit).ToArray()), out int expectedCode) &&
-                    response.StatusCode == (HttpStatusCode)expectedCode &&
-                    responseContent.Contains(site.Value<string>("e_string")))
+                if (statusCode == (HttpStatusCode)expectedStatusCode &&
+                    response.Content.ReadAsStringAsync().Result.Contains(site.e_string.ToString()))
                 {
-                    var accountInfo = new FoundAccount
-                    {
-                        Id = foundAccounts.Count + 1,
-                        Username = username,
-                        Name = site.Value<string>("name"),
-                        UrlMain = extractMainUrl(response.RequestMessage.RequestUri),
-                        UrlUser = response.RequestMessage.RequestUri.ToString(),
-                        Exists = "Claimed",
-                        HttpStatus = response.StatusCode,
-                        ResponseTimeS = stopwatch.Elapsed.TotalSeconds.ToString("F3"),
-                    };
-                    foundAccounts.Add(accountInfo);
+                    return true;
+                }
+                else if (statusCode == (HttpStatusCode)Convert.ToInt32(site.m_code) &&
+                         response.Content.ReadAsStringAsync().Result.Contains(site.m_string.ToString()))
+                {
+                    return false;
                 }
             }
-            catch (Exception ex)
+            catch (HttpRequestException ex)
             {
-                MessageBox.Show($"Error occurred for {site["name"]} - {ex.Message}");
+                Console.WriteLine($"Error occurred for {site.name} - {ex.Message}");
+            }
+
+            return false;
+        }
+
+        private void AddToDataGridView(dynamic site)
+        {
+            int id = foundAccounts.Count + 1;
+            string name = site.name.ToString();
+            string status = "Claimed";
+
+            Dictionary<string, string> accountInfo = new Dictionary<string, string>
+            {
+                { "id", id.ToString() },
+                { "name", name },
+                { "status", status }
+            };
+
+            foundAccounts.Add(accountInfo);
+
+            dataGridView1.Rows.Add(id, name, status);
+        }
+        private string ExtractMainUrl(string inputUrl)
+        {
+            try
+            {
+                Uri parsedUrl = new Uri(inputUrl);
+                return $"{parsedUrl.Scheme}://{parsedUrl.Host}/";
+            }
+            catch
+            {
+                return inputUrl;
             }
         }
 
-        private string extractMainUrl(Uri inputUri)
-        {
-            return $"{inputUri.Scheme}://{inputUri.Host}/";
-        }
-
-
-        public class FoundAccount
-        {
-            public int Id { get; set; }
-            public string Username { get; set; }
-            public string Name { get; set; }
-            public string UrlMain { get; set; }
-            public string UrlUser { get; set; }
-            public string Exists { get; set; }
-            public HttpStatusCode HttpStatus { get; set; }
-            public string ResponseTimeS { get; set; }
-        }
 
 
     }
