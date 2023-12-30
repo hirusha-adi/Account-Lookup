@@ -9,6 +9,7 @@ from PyQt6 import QtCore, QtGui, QtWidgets
 import sys
 from PyQt6.QtWidgets import QProgressDialog
 from PyQt6.QtCore import Qt
+from PyQt6.QtWidgets import QMessageBox
 
 import requests
 import json
@@ -245,6 +246,15 @@ def check_username_on_site(site, username, session):
     return False
 
 def check_username(username):
+    
+    if str(username).strip() == '':
+        error_message = QMessageBox()
+        error_message.setIcon(QMessageBox.Icon.Critical)
+        error_message.setWindowTitle("Error")
+        error_message.setText("Please enter a username")
+        error_message.exec()
+        return
+    
     global found_accounts
     found_accounts = []
 
