@@ -1,3 +1,4 @@
+import os
 import sys
 from concurrent.futures import ThreadPoolExecutor
 from urllib.parse import urlparse
@@ -313,9 +314,18 @@ class AccountLookup:
             error_message.exec()
             return
 
-
+    @staticmethod
+    def check_json_file_download():
+        if not os.path.isfile('wmn-data.json'):
+            response  = requests.get("https://raw.githubusercontent.com/WebBreacher/WhatsMyName/main/wmn-data.json")
+            if response.status_code == 200:
+                with open('wmn-data.json', 'wb') as f:
+                    f.write(response.content)
+            else:
+                sys.exit()
+        
 if __name__ == "__main__":
-    import sys
+    AccountLookup.check_json_file_download()
     app = QApplication(sys.argv)
     MainWindow = QMainWindow()
     ui = Ui_MainWindow()
