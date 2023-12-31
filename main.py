@@ -24,6 +24,8 @@ class Ui_MainWindow(object):
         # Main window setup
         MainWindow.setObjectName("MainWindow")
         MainWindow.resize(381, 525)
+        MainWindow.setWindowTitle("Account Lookup")
+        MainWindow.setFixedSize(381, 525)
 
         # Central widget setup
         self.centralwidget = QWidget(MainWindow)
