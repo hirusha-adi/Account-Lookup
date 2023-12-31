@@ -1,3 +1,4 @@
+import os, sys
 import requests
 import json
 from concurrent.futures import ThreadPoolExecutor
@@ -83,6 +84,20 @@ def print_logo():
     """
     print(f"{Fore.CYAN}{logo}\n")
 
+def check_json_file_download():
+    if not os.path.isfile('wmn-data.json'):
+        try:
+            response  = requests.get("https://raw.githubusercontent.com/WebBreacher/WhatsMyName/main/wmn-data.json")
+            if response.status_code == 200:
+                with open('wmn-data.json', 'wb') as f:
+                    f.write(response.content)
+            else:
+                print(f"{Fore.RED}Error 002: Unable to download 'wmn-data.json'. Please load the data manually. Save https://raw.githubusercontent.com/WebBreacher/WhatsMyName/main/wmn-data.json to the current working directory.")
+                sys.exit()
+        except requests.exceptions.ConnectionError as e:
+            print(f"{Fore.RED}Error 001: Connection error. Unable to download 'wmn-data.json'. Exception: {e}")
+            sys.exit()
+            
 if __name__ == "__main__":
     import argparse
 
@@ -92,6 +107,8 @@ if __name__ == "__main__":
     
     args = parser.parse_args()
 
+    check_json_file_download()
+    
     if args.username:
         tmp = check_username(args.username)
     else:
