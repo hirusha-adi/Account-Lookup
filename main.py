@@ -120,7 +120,7 @@ class Ui_MainWindow(object):
         
         self.actionExit = QAction(MainWindow)
         self.actionExit.setText("Exit")
-        self.actionSearch.triggered.connect(sys.exit)
+        self.actionSearch.triggered.connect(app.quit)
         
         self.actionGuide = QAction(MainWindow)
         self.actionGuide.setText("Guide")
@@ -165,21 +165,17 @@ class Ui_MainWindow(object):
     
     
     def open_about_me(self):
-        # Create an information message box
         about_box = QMessageBox()
         about_box.setIcon(QMessageBox.Icon.Information)
         about_box.setWindowTitle("About")
         about_box.setText("Built by @hirushaadi")
 
-        # Add "Visit Website" and "Close" buttons
         visit_website_button = about_box.addButton("Visit Website", QMessageBox.ButtonRole.AcceptRole)
         close_button = about_box.addButton("Close", QMessageBox.ButtonRole.RejectRole)
 
-        # Connect the buttons to their respective actions
         visit_website_button.clicked.connect(lambda: open_browser("https://hirusha.xyz"))
         close_button.clicked.connect(about_box.reject)
 
-        # Show the message box
         about_box.exec()
         
     def update_table(self, found_accounts):
@@ -214,7 +210,7 @@ class Ui_MainWindow(object):
         ui.txt_username.clear()
         ui.textBrowser.clear()
         ui.table_widget.setRowCount(0)
-            
+
 found_accounts = []
 
 def open_browser(url):
