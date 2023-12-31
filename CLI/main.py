@@ -11,8 +11,11 @@ found_accounts = []
 
 def extract_main_url(input_url):
     try:
-        parsed_url = urlparse(input_url)
-        main_url = f"{parsed_url.scheme}://{parsed_url.netloc}/"
+        try:
+            parsed_url = urlparse(input_url)
+            main_url = f"{parsed_url.scheme}://{parsed_url.netloc}/"
+        except Exception as e:
+            print(f"{Fore.RED}Error 005: Unable to parse URL: {input_url}. Exception: {e}")
         return main_url
     except:
         return input_url 
@@ -26,10 +29,16 @@ def check_username_on_site(site, username, session):
     try:
         if method == "GET":
             final_url = uri.format(account=username)
-            response = session.get(final_url, headers=headers, timeout=10)
+            try:
+                response = session.get(final_url, headers=headers, timeout=10)
+            except requests.exceptions.ConnectionError as e:
+                print(f"{Fore.RED}Error 003: Connection error. Unable to GET: {final_url}. Exception: {e}")
         elif method == "POST":
             final_url = uri
-            response = session.post(final_url, data=payload, headers=headers, timeout=10)
+            try:
+                response = session.post(final_url, data=payload, headers=headers, timeout=10)
+            except requests.exceptions.ConnectionError as e:
+                print(f"{Fore.RED}Error 004: Connection error. Unable to POST: {final_url}. Exception: {e}")
 
         response.raise_for_status()
 
@@ -44,13 +53,14 @@ def check_username_on_site(site, username, session):
                 "http_status": response.status_code,
                 "response_time_s": f"{response.elapsed.total_seconds():.3f}",
             }
+            print(f"{Fore.GREEN}[+] {username} found in {account_info['name']}, at: {account_info['url_user']}")
             found_accounts.append(account_info)
             return True
         elif response.status_code == site["m_code"] and site["m_string"] in response.text:
             return False
 
-    except requests.exceptions.RequestException as req_err:
-        print(f"{Fore.RED}Error occurred for {site['name']} - {req_err}")
+    except requests.exceptions.RequestException:
+        print(f"{Fore.LIGHTBLACK_EX}[-] {username} not found in {site['name']}")
 
     return False
 
