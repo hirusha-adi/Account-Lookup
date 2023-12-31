@@ -13,6 +13,9 @@ import json, webbrowser
 from concurrent.futures import ThreadPoolExecutor
 from urllib.parse import urlparse
 
+def open_browser(url):
+    webbrowser.open(url)
+        
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         # Main window setup
@@ -49,7 +52,7 @@ class Ui_MainWindow(object):
         self.btn_search = QPushButton(self.group_search)
         self.btn_search.setGeometry(240, 30, 75, 31)
         self.btn_search.setText("Search")
-        self.btn_search.clicked.connect(lambda: check_username(ui.txt_username.toPlainText()))
+        self.btn_search.clicked.connect(lambda: AccountLookup.check_username(ui.txt_username.toPlainText()))
 
         self.btn_clear = QPushButton(self.group_search)
         self.btn_clear.setGeometry(320, 30, 31, 31)
@@ -112,7 +115,7 @@ class Ui_MainWindow(object):
         
         self.actionSearch = QAction(MainWindow)
         self.actionSearch.setText("Search")
-        self.actionSearch.triggered.connect(lambda: check_username(ui.txt_username.toPlainText()))
+        self.actionSearch.triggered.connect(lambda: AccountLookup.check_username(ui.txt_username.toPlainText()))
         
         self.actionClear = QAction(MainWindow)
         self.actionClear.setText("Clear")
@@ -201,111 +204,110 @@ class Ui_MainWindow(object):
 
         if file_path:
             with open(file_path, 'w', encoding='utf-8') as file:
-                json.dump(found_accounts, file, ensure_ascii=False, indent=2)
+                json.dump(AccountLookup.found_accounts, file, ensure_ascii=False, indent=2)
             ui.textBrowser.append(f"Saved to {file_path}")
     
     def clear_logs_and_table(self):
-        global found_accounts
-        found_accounts = []
+        AccountLookup.found_accounts = []
         ui.txt_username.clear()
         ui.textBrowser.clear()
         ui.table_widget.setRowCount(0)
 
-found_accounts = []
-
-def open_browser(url):
-    webbrowser.open(url)
-        
-def extract_main_url(input_url):
-    try:
-        parsed_url = urlparse(input_url)
-        main_url = f"{parsed_url.scheme}://{parsed_url.netloc}/"
-        return main_url
-    except:
-        return input_url 
-
-def check_username_on_site(site, username, session):
-    uri = site.get("uri_check")
-    method = site.get("method", "GET")
-    payload = site.get("post_body", {})
-    headers = site.get("headers", {})
-
-    try:
-        if method == "GET":
-            final_url = uri.format(account=username)
-            response = session.get(final_url, headers=headers, timeout=10)
-        elif method == "POST":
-            final_url = uri
-            response = session.post(final_url, data=payload, headers=headers, timeout=10)
-
-        response.raise_for_status()
-
-        if response.status_code == site["e_code"] and site["e_string"] in response.text:
-            account_info = {
-                "id": len(found_accounts) + 1,
-                "username": username,
-                "name": site.get("name"),
-                "url_main": extract_main_url(final_url),
-                "url_user": final_url,
-                "exists": "Claimed",
-                "http_status": response.status_code,
-                "response_time_s": f"{response.elapsed.total_seconds():.3f}",
-            }
-            found_accounts.append(account_info)
-            return True
-        elif response.status_code == site["m_code"] and site["m_string"] in response.text:
-            return False
-
-    except requests.exceptions.RequestException:
-        ui.textBrowser.append(f"Not found in {site['name']}.")
-
-    return False
-
-def check_username(username):
-    if str(username).strip() == '':
-        error_message = QMessageBox()
-        error_message.setIcon(QMessageBox.Icon.Critical)
-        error_message.setWindowTitle("Error")
-        error_message.setText("Please enter a username")
-        error_message.exec()
-        return
-    
-    global found_accounts
+class AccountLookup:
     found_accounts = []
+  
+    @staticmethod
+    def extract_main_url(input_url):
+        try:
+            parsed_url = urlparse(input_url)
+            main_url = f"{parsed_url.scheme}://{parsed_url.netloc}/"
+            return main_url
+        except:
+            return input_url 
 
-    with open('wmn-data.json', 'r', encoding='utf-8') as file:
-        data = json.load(file)
+    @staticmethod
+    def check_username_on_site(site, username, session):
+        uri = site.get("uri_check")
+        method = site.get("method", "GET")
+        payload = site.get("post_body", {})
+        headers = site.get("headers", {})
 
-    total_sites = len(data["sites"])
-    progress_dialog = QProgressDialog(f"Searching for {username}...", "Cancel", 0, total_sites)
-    progress_dialog.setWindowModality(Qt.WindowModality.WindowModal)
-    progress_dialog.setWindowTitle("Searching")
+        try:
+            if method == "GET":
+                final_url = uri.format(account=username)
+                response = session.get(final_url, headers=headers, timeout=10)
+            elif method == "POST":
+                final_url = uri
+                response = session.post(final_url, data=payload, headers=headers, timeout=10)
 
-    def update_progress(i):
-        progress_dialog.setValue(i)
-        app.processEvents()
+            response.raise_for_status()
 
-    with ThreadPoolExecutor() as executor, requests.Session() as session:
-        futures = [executor.submit(check_username_on_site, site, username, session) for site in data["sites"]]
-        for i, future in enumerate(futures):
-            if progress_dialog.wasCanceled():
-                break
-            result = future.result()
-            update_progress(i + 1)
+            if response.status_code == site["e_code"] and site["e_string"] in response.text:
+                account_info = {
+                    "id": len(AccountLookup.found_accounts) + 1,
+                    "username": username,
+                    "name": site.get("name"),
+                    "url_main": AccountLookup.extract_main_url(final_url),
+                    "url_user": final_url,
+                    "exists": "Claimed",
+                    "http_status": response.status_code,
+                    "response_time_s": f"{response.elapsed.total_seconds():.3f}",
+                }
+                AccountLookup.found_accounts.append(account_info)
+                return True
+            elif response.status_code == site["m_code"] and site["m_string"] in response.text:
+                return False
 
-            if result:
-                ui.update_table(found_accounts)
+        except requests.exceptions.RequestException:
+            ui.textBrowser.append(f"Not found in {site['name']}.")
 
-    progress_dialog.setValue(total_sites)
-    progress_dialog.close()
+        return False
 
-    if not any(found_accounts):
-        error_message = QMessageBox()
-        error_message.setIcon(QMessageBox.Icon.Critical)
-        error_message.setWindowTitle("Not Found")
-        error_message.setText(f"Username {username} not found on any site.")
-        error_message.exec()
-        return
+    @staticmethod
+    def check_username(username):
+        if str(username).strip() == '':
+            error_message = QMessageBox()
+            error_message.setIcon(QMessageBox.Icon.Critical)
+            error_message.setWindowTitle("Error")
+            error_message.setText("Please enter a username")
+            error_message.exec()
+            return
+        
+        AccountLookup.found_accounts = []
+
+        with open('wmn-data.json', 'r', encoding='utf-8') as file:
+            data = json.load(file)
+
+        total_sites = len(data["sites"])
+        progress_dialog = QProgressDialog(f"Searching for {username}...", "Cancel", 0, total_sites)
+        progress_dialog.setWindowModality(Qt.WindowModality.WindowModal)
+        progress_dialog.setWindowTitle("Searching")
+
+        def update_progress(i):
+            progress_dialog.setValue(i)
+            app.processEvents()
+
+        with ThreadPoolExecutor() as executor, requests.Session() as session:
+            futures = [executor.submit(AccountLookup.check_username_on_site, site, username, session) for site in data["sites"]]
+            for i, future in enumerate(futures):
+                if progress_dialog.wasCanceled():
+                    break
+                result = future.result()
+                update_progress(i + 1)
+
+                if result:
+                    ui.update_table(AccountLookup.found_accounts)
+
+        progress_dialog.setValue(total_sites)
+        progress_dialog.close()
+
+        if not any(AccountLookup.found_accounts):
+            error_message = QMessageBox()
+            error_message.setIcon(QMessageBox.Icon.Critical)
+            error_message.setWindowTitle("Not Found")
+            error_message.setText(f"Username {username} not found on any site.")
+            error_message.exec()
+            return
 
 
 if __name__ == "__main__":
