@@ -124,23 +124,23 @@ class Ui_MainWindow(object):
         
         self.actionGuide = QAction(MainWindow)
         self.actionGuide.setText("Guide")
-        self.actionGuide.triggered.connect(self.open_browser("https://github.com/hirusha-adi/Account-Lookup/blob/main/guide.md"))
+        self.actionGuide.triggered.connect(lambda: open_browser("https://github.com/hirusha-adi/Account-Lookup/blob/main/guide.md"))
         
         self.actionHow_it_works = QAction(MainWindow)
         self.actionHow_it_works.setText("How it works?")
-        self.actionGuide.triggered.connect(self.open_browser("https://github.com/hirusha-adi/Account-Lookup/blob/main/how-it-works.md"))
+        self.actionGuide.triggered.connect(lambda: open_browser("https://github.com/hirusha-adi/Account-Lookup/blob/main/how-it-works.md"))
         
         self.actionLicense = QAction(MainWindow)
         self.actionLicense.setText("License")
-        self.actionGuide.triggered.connect(self.open_browser("https://github.com/hirusha-adi/Account-Lookup/blob/main/LICENSE"))
+        self.actionGuide.triggered.connect(lambda: open_browser("https://github.com/hirusha-adi/Account-Lookup/blob/main/LICENSE"))
         
         self.actionCredits = QAction(MainWindow)
         self.actionCredits.setText("Credits")
-        self.actionGuide.triggered.connect(self.open_browser("https://github.com/hirusha-adi/Account-Lookup/blob/main/credits.md"))
+        self.actionGuide.triggered.connect(lambda: open_browser("https://github.com/hirusha-adi/Account-Lookup/blob/main/credits.md"))
         
         self.actionContribute = QAction(MainWindow)
         self.actionContribute.setText("Contribute")
-        self.actionGuide.triggered.connect(self.open_browser("https://github.com/hirusha-adi/Account-Lookup/"))
+        self.actionGuide.triggered.connect(lambda: open_browser("https://github.com/hirusha-adi/Account-Lookup/"))
         
         self.actionAbout = QAction(MainWindow)
         self.actionAbout.setText("About")
@@ -162,8 +162,7 @@ class Ui_MainWindow(object):
         self.menubar.addAction(self.menuFile.menuAction())
         self.menubar.addAction(self.menuGuide.menuAction())
     
-    def open_browser(self, url):
-        webbrowser.open(url)
+    
     
     def open_about_me(self):
         # Create an information message box
@@ -177,7 +176,7 @@ class Ui_MainWindow(object):
         close_button = about_box.addButton("Close", QMessageBox.ButtonRole.RejectRole)
 
         # Connect the buttons to their respective actions
-        visit_website_button.clicked.connect(self.open_browser("https://hirusha.xyz"))
+        visit_website_button.clicked.connect(lambda: open_browser("https://hirusha.xyz"))
         close_button.clicked.connect(about_box.reject)
 
         # Show the message box
@@ -197,7 +196,7 @@ class Ui_MainWindow(object):
 
     def handle_item_click(self, item):
         if item.column() == 1:
-            webbrowser.open(f"{item.text()}")
+            open_browser(f"{item.text()}")
     
     def save_json(self):
         file_dialog = QFileDialog()
@@ -218,6 +217,9 @@ class Ui_MainWindow(object):
             
 found_accounts = []
 
+def open_browser(url):
+    webbrowser.open(url)
+        
 def extract_main_url(input_url):
     try:
         parsed_url = urlparse(input_url)
@@ -259,7 +261,7 @@ def check_username_on_site(site, username, session):
             return False
 
     except requests.exceptions.RequestException:
-        ui.textBrowser.append(f"Not in {site['name']}.")
+        ui.textBrowser.append(f"Not found in {site['name']}.")
 
     return False
 
