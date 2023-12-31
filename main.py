@@ -7,10 +7,9 @@ from PyQt6.QtGui import QAction
 from PyQt6.QtWidgets import (
     QApplication, QMainWindow, QWidget, QLabel, QGroupBox, QTextEdit,
     QPushButton, QTableWidget, QMenuBar, QMenu, QTextBrowser, QStatusBar,
-    QFileDialog, QProgressDialog, QMessageBox, QAbstractItemView
+    QFileDialog, QProgressDialog, QMessageBox, QAbstractItemView,
+    QTableWidgetItem
 )
-
-from PyQt6 import QtWidgets
 
 import requests
 import json
@@ -192,9 +191,9 @@ class Ui_MainWindow(object):
             self.table_widget.insertRow(row_position)
 
             # populate
-            self.table_widget.setItem(row_position, 0, QtWidgets.QTableWidgetItem(str(account_info["name"])))
-            self.table_widget.setItem(row_position, 1, QtWidgets.QTableWidgetItem(account_info["url_user"]))
-            self.table_widget.setItem(row_position, 2, QtWidgets.QTableWidgetItem(str(account_info["http_status"])))
+            self.table_widget.setItem(row_position, 0, QTableWidgetItem(str(account_info["name"])))
+            self.table_widget.setItem(row_position, 1, QTableWidgetItem(account_info["url_user"]))
+            self.table_widget.setItem(row_position, 2, QTableWidgetItem(str(account_info["http_status"])))
 
     def handle_item_click(self, item):
         if item.column() == 1:
