@@ -4,6 +4,7 @@ import json
 from concurrent.futures import ThreadPoolExecutor
 from urllib.parse import urlparse
 from colorama import init, Fore
+from tabulate import tabulate
 
 init(autoreset=True)
 
@@ -107,7 +108,13 @@ def check_json_file_download():
         except requests.exceptions.ConnectionError as e:
             print(f"{Fore.RED}Error 001: Connection error. Unable to download 'wmn-data.json'. Exception: {e}")
             sys.exit()
-            
+
+def tabulated_accounts():
+    print("\nTabulated View:")
+    headers = ["ID", "Username", "Name", "URL Main", "URL User", "Exists", "HTTP Status", "Response Time (s)"]
+    table_data = [[info.get(header.lower()) for header in headers] for info in found_accounts]
+    print(tabulate(table_data, headers=headers, tablefmt="grid"))
+
 if __name__ == "__main__":
     import argparse
 
@@ -134,3 +141,10 @@ if __name__ == "__main__":
             save_to_json()
         else:
             print("Data not saved.")
+
+    if found_accounts:
+        try:
+            tabulated_accounts()
+        except Exception as e:
+            print(f"{Fore.RED}[-] Error tabulating data. Exception: {e}")
+            
