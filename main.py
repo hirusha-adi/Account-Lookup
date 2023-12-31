@@ -1,17 +1,21 @@
-from PyQt6.QtWidgets import QAbstractItemView, QApplication, QMainWindow, QWidget, QLabel, QGroupBox, QTextEdit, QPushButton, QTableWidget, QMenuBar, QMenu, QTextBrowser, QVBoxLayout
-from PyQt6.QtGui import QAction
-from PyQt6.QtWidgets import QStatusBar
-from PyQt6.QtWidgets import QFileDialog
-
-from PyQt6 import QtCore, QtGui, QtWidgets
-import sys, threading
-from PyQt6.QtWidgets import QProgressDialog
-from PyQt6.QtCore import Qt
-from PyQt6.QtWidgets import QMessageBox
-import requests
-import json, webbrowser
+import sys
 from concurrent.futures import ThreadPoolExecutor
 from urllib.parse import urlparse
+
+from PyQt6.QtCore import Qt
+from PyQt6.QtGui import QAction
+from PyQt6.QtWidgets import (
+    QApplication, QMainWindow, QWidget, QLabel, QGroupBox, QTextEdit,
+    QPushButton, QTableWidget, QMenuBar, QMenu, QTextBrowser, QStatusBar,
+    QFileDialog, QProgressDialog, QMessageBox, QAbstractItemView
+)
+
+from PyQt6 import QtWidgets
+
+import requests
+import json
+import webbrowser
+
 
 def open_browser(url):
     webbrowser.open(url)
@@ -164,7 +168,6 @@ class Ui_MainWindow(object):
         # Add menus to menu bar
         self.menubar.addAction(self.menuFile.menuAction())
         self.menubar.addAction(self.menuGuide.menuAction())
-    
     
     
     def open_about_me(self):
